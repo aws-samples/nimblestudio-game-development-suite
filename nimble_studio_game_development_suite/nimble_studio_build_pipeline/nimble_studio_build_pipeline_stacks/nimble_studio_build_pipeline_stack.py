@@ -112,13 +112,13 @@ class NimbleStudioBuildPipelineStack(Stack):
 
     def _validate_config(self, config_retriever: ConfigRetriever):
         should_exit = False
-        if config_retriever.jenkins_key_pair_name == "":
+        if not config_retriever.jenkins_key_pair_name:
             print(
                 "ERROR: Please run 'export CDK_BUILD_PIPELINE_KEY_PAIR_NAME=ec2_key_pair_name'"
             )
             should_exit = True
 
-        if config_retriever.build_node_ami_id == "":
+        if not config_retriever.build_node_ami_id:
             print(
                 "ERROR: Jenkins build node AMI ID could not be determined. Please run 'export CDK_JENKINS_BUILD_NODE_AMI_ID=<ami_id>'"
             )

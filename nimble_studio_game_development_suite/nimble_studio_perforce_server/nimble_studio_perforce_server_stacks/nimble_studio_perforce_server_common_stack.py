@@ -86,13 +86,13 @@ class NimbleStudioPerforceServerCommonStack(NestedStack):
     def _validate_config(self, config_retriever: ConfigRetriever):
         should_exit = False
 
-        if config_retriever.perforce_notification_email == "":
+        if not config_retriever.perforce_notification_email:
             print(
                 f"ERROR: Please run 'export {ConfigRetriever.PERFORCE_NOTIFICATION_EMAIL_ENV_VAR}=example@example.com'"
             )
             should_exit = True
 
-        if config_retriever.perforce_key_pair_name == "":
+        if not config_retriever.perforce_key_pair_name:
             print(
                 f"ERROR: Please run 'export {ConfigRetriever.PERFORCE_KEY_PAIR_NAME_ENV_VAR}=ec2_key_pair_name'"
             )
