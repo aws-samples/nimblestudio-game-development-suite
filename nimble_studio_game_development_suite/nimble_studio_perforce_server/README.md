@@ -18,7 +18,7 @@ You may bring your own Perforce License for use with this application. Refer to 
 ### Deploy
 
 #### Terminal
-All deployment commands must be executed inside this folder, navigate there if you haven't already done so.
+All deployment commands must be executed inside the *nimble_studio_perforce_server* folder, navigate there if you haven't already done so.
 
 ```bash
 cd nimble_studio_game_development_suite/nimble_studio_perforce_server

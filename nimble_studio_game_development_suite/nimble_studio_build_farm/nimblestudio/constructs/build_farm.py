@@ -18,6 +18,9 @@ from utils.config_retriever import ConfigRetriever
 
 
 class NimbleStudioBuildFarmStack(Stack):
+
+    INCREDIBUILD_SILENT_INSTALLER_DOWNLOAD = "https://ib-installers-prod.s3.eu-central-1.amazonaws.com/ibsetup/ibsetup_lts_console.exe"
+
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -99,22 +102,8 @@ class NimbleStudioBuildFarmStack(Stack):
             self, "WorkerSupportNetworkACL", worker_support_network_acl_id
         )
 
-        # We locate the Incredibuild installer and an Incredibuild license file
+        # We locate the Incredibuild license file
         incredibuild_path = self._get_incredibuild_path()
-        incredibuild_installer_path = self._get_incredibuild_installer_path(
-            incredibuild_path
-        )
-
-        if not Path.exists(incredibuild_installer_path):
-            print(
-                f"ERROR: Failed to find the Incredibuild installer at {incredibuild_installer_path}"
-            )
-            sys.exit(1)
-
-        # Upload the Incredibuild installer to the CDK's S3 bucket in your account
-        self.incredibuild_installer = Asset(
-            self, "IncredibuildInstaller", path=str(incredibuild_installer_path)
-        )
 
         incredibuild_license_path = self._get_incredibuild_license_path(
             incredibuild_path
@@ -129,7 +118,7 @@ class NimbleStudioBuildFarmStack(Stack):
         self.incredibuild_coordinator = IncredibuildCoordinator(
             self,
             "IncredibuildCoordinatorConstruct",
-            incredibuild_installer=self.incredibuild_installer,
+            incredibuild_installer_location=NimbleStudioBuildFarmStack.INCREDIBUILD_SILENT_INSTALLER_DOWNLOAD,
             incredibuild_license=self.incredibuild_license,
             studio_hosted_zone_attributes=config_retriever.hosted_zone,
             vpc=self.vpc,
@@ -146,7 +135,7 @@ class NimbleStudioBuildFarmStack(Stack):
             "IncredibuildWorkersConstruct",
             incredibuild_coordinator_domain_name=self.incredibuild_coordinator.incredibuild_server_record.domain_name,
             incredibuild_coordinator_security_group=self.incredibuild_coordinator.coordinator_security_group,
-            incredibuild_installer=self.incredibuild_installer,
+            incredibuild_installer_location=NimbleStudioBuildFarmStack.INCREDIBUILD_SILENT_INSTALLER_DOWNLOAD,
             vpc=self.vpc,
             vpc_endpoints_sg=vpc_endpoints_sg,
             worker_subnets=self.render_worker_subnets,
@@ -189,10 +178,6 @@ New-ItemProperty -Path $RegistryPath -Name $Name -Value $Value -PropertyType Str
 
     def _get_incredibuild_path(self):
         return Path(__file__).parent.parent.parent.joinpath("incredibuild").absolute()
-
-    def _get_incredibuild_installer_path(self, incredibuild_path: Path):
-        incredibuild_installer_path = incredibuild_path.joinpath("IBSetupConsole.exe")
-        return incredibuild_installer_path
 
     def _get_incredibuild_license_path(self, incredibuild_path: Path):
         # We search the incredibuild_path for any Incredibuild license files, and return the most recent one

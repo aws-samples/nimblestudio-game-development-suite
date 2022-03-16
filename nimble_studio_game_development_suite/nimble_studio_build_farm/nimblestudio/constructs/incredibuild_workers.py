@@ -40,7 +40,7 @@ class IncredibuildWorkers(Construct):
         *,
         incredibuild_coordinator_domain_name: str,
         incredibuild_coordinator_security_group: SecurityGroup,
-        incredibuild_installer: Asset,
+        incredibuild_installer_location: str,
         vpc: str,
         vpc_endpoints_sg: SecurityGroup,
         worker_subnets: List[Subnet],
@@ -96,8 +96,7 @@ class IncredibuildWorkers(Construct):
         self._add_user_data_cloudwatch_agent(coordinator_instance_role=workers_role)
         self._add_incredibuild_installer_user_data(
             coordinator_domain_name=incredibuild_coordinator_domain_name,
-            coordinator_instance_role=workers_role,
-            incredibuild_installer=incredibuild_installer,
+            incredibuild_installer_location=incredibuild_installer_location,
         )
 
         user_data = UserData.custom("<persist>true</persist>")
@@ -183,18 +182,13 @@ class IncredibuildWorkers(Construct):
         self,
         *,
         coordinator_domain_name: str,
-        coordinator_instance_role: Role,
-        incredibuild_installer: Asset,
+        incredibuild_installer_location: str,
     ) -> None:
-        # Firstly we need to give ourselves access to the CDK bucket
-        incredibuild_installer.bucket.grant_read(coordinator_instance_role)
 
         # Download the Incredibuild silent installer
         incredibuild_installer_local_path = r"C:\temp\IBSetupConsole.exe"
-        self._user_data.add_s3_download_command(
-            bucket=incredibuild_installer.bucket,
-            bucket_key=incredibuild_installer.s3_object_key,
-            local_file=incredibuild_installer_local_path,
+        self._user_data.add_commands(
+            f"(New-Object System.Net.WebClient).DownloadFile({incredibuild_installer_location}, {incredibuild_installer_local_path})"
         )
 
         # Install Incredibuild, and then configure it to connect to the coordinator

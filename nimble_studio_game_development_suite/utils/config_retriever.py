@@ -6,6 +6,12 @@ from typing import Any, Dict
 
 
 class ConfigRetriever:
+
+    PERFORCE_NOTIFICATION_EMAIL_ENV_VAR = "CDK_PERFORCE_NOTIFICATION_EMAIL"
+    PERFORCE_KEY_PAIR_NAME_ENV_VAR = "CDK_PERFORCE_KEY_PAIR_NAME"
+    JENKINS_KEY_PAIR_NAME_ENV_VAR = "CDK_BUILD_PIPELINE_KEY_PAIR_NAME"
+    JENKINS_BUILD_NODE_AMI_ID_ENV_VAR = "CDK_JENKINS_BUILD_NODE_AMI_ID"
+
     def __init__(self):
         self.existing_subnets = {"WorkerSupport": [], "Workstations": []}
         self.workstation_subnet_azs = []
@@ -337,31 +343,13 @@ class ConfigRetriever:
         return group_id
 
     def get_perforce_notification_email(self):
-        notification_email = os.environ.get("CDK_PERFORCE_NOTIFICATION_EMAIL", "")
-        if notification_email == "":
-            print(
-                "ERROR: Please run 'export CDK_PERFORCE_NOTIFICATION_EMAIL=example@example.com'"
-            )
-        return notification_email
+        return os.environ.get(ConfigRetriever.PERFORCE_NOTIFICATION_EMAIL_ENV_VAR, "")
 
     def get_perforce_key_pair_name(self):
-        key_pair_name = os.environ.get("CDK_PERFORCE_KEY_PAIR_NAME", "")
-        if key_pair_name == "":
-            print("ERROR: Please run 'export CDK_PERFORCE_KEY_PAIR_NAME=ec2_key_pair_name'")
-        return key_pair_name
+        return os.environ.get(ConfigRetriever.PERFORCE_KEY_PAIR_NAME_ENV_VAR, "")
 
     def get_build_node_ami_id(self):
-        build_node_ami_id = os.environ.get("CDK_JENKINS_BUILD_NODE_AMI_ID", "")
-        if build_node_ami_id == "":
-            print(
-                "ERROR: Jenkins build node AMI ID could not be determined. Please run\nexport CDK_JENKINS_BUILD_NODE_AMI_ID=<ami_id>"
-            )
-        return build_node_ami_id
+        return os.environ.get(ConfigRetriever.JENKINS_BUILD_NODE_AMI_ID_ENV_VAR, "")
 
     def get_jenkins_key_pair_name(self):
-        key_pair_name = os.environ.get("CDK_BUILD_PIPELINE_KEY_PAIR_NAME", "")
-        if key_pair_name == "":
-            print(
-                "ERROR: Please run 'export CDK_BUILD_PIPELINE_KEY_PAIR_NAME=ec2_key_pair_name'"
-            )
-        return key_pair_name
+        return os.environ.get(ConfigRetriever.JENKINS_KEY_PAIR_NAME_ENV_VAR, "")

@@ -4,13 +4,22 @@
 
 This example deploys a complete stack which installs an Incredibuild server as well as supporting infrastructure for use within a Nimble Studio VPC.
 
+### Prerequisites
+
+#### Incredibuild License
+
+Place your Incredibuild License file in the `nimble_studio_game_development_suite/nimble_studio_build_farm/incredibuild` folder. 
+
+You can download a free trial license from the [Incredibuild website](https://www.incredibuild.com/free-trial).
+
 ### Deploy
 
 #### Terminal
-All deployment commands must be executed inside the *repo* folder, navigate there if you haven't already done so.
+
+All deployment commands must be executed inside the *nimble_studio_build_farm* folder, navigate there if you haven't already done so.
 
 ```bash
-cd <repo>
+cd nimble_studio_game_development_suite/nimble_studio_build_farm
 ```
 
 By default, the CDK will use the credentials and region that you configured earlier for the AWS CLI. If you want to override the region, you can `export AWS_REGION=<region>` prior to running the CDK.

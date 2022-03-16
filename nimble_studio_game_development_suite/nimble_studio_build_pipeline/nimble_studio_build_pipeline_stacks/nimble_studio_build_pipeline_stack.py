@@ -24,11 +24,7 @@ class NimbleStudioBuildPipelineStack(Stack):
 
         config_retriever = ConfigRetriever()
 
-        if (
-            config_retriever.build_node_ami_id == ""
-            or config_retriever.jenkins_key_pair_name == ""
-        ):
-            sys.exit(1)
+        self._validate_config(config_retriever=config_retriever)
 
         vpc: ec2.IVpc = ec2.Vpc.from_lookup(
             self, "StudioVPC", vpc_id=config_retriever.vpc_id
@@ -113,3 +109,20 @@ class NimbleStudioBuildPipelineStack(Stack):
             "JenkinsRecordName",
             value=jenkins_stack.jenkins_record.domain_name,
         )
+
+    def _validate_config(self, config_retriever: ConfigRetriever):
+        should_exit = False
+        if not config_retriever.jenkins_key_pair_name:
+            print(
+                "ERROR: Please run 'export CDK_BUILD_PIPELINE_KEY_PAIR_NAME=ec2_key_pair_name'"
+            )
+            should_exit = True
+
+        if not config_retriever.build_node_ami_id:
+            print(
+                "ERROR: Jenkins build node AMI ID could not be determined. Please run 'export CDK_JENKINS_BUILD_NODE_AMI_ID=<ami_id>'"
+            )
+            should_exit = True
+
+        if should_exit:
+            sys.exit(1)

@@ -18,6 +18,9 @@ class NimbleStudioPerforceServerCommonStack(NestedStack):
     def __init__(self, scope: Construct, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
         config_retriever = ConfigRetriever()
+
+        self._validate_config(config_retriever=config_retriever)
+
         # Lookup our pre-created VPC by ID
         self._vpc: ec2.IVpc = ec2.Vpc.from_lookup(
             self, "vpc", vpc_id=config_retriever.vpc_id
@@ -78,4 +81,22 @@ class NimbleStudioPerforceServerCommonStack(NestedStack):
         self._studio_id = config_retriever.studio["studioId"]
 
         if self._notification_email == "" or self._key_pair_name == "":
+            sys.exit(1)
+
+    def _validate_config(self, config_retriever: ConfigRetriever):
+        should_exit = False
+
+        if not config_retriever.perforce_notification_email:
+            print(
+                f"ERROR: Please run 'export {ConfigRetriever.PERFORCE_NOTIFICATION_EMAIL_ENV_VAR}=example@example.com'"
+            )
+            should_exit = True
+
+        if not config_retriever.perforce_key_pair_name:
+            print(
+                f"ERROR: Please run 'export {ConfigRetriever.PERFORCE_KEY_PAIR_NAME_ENV_VAR}=ec2_key_pair_name'"
+            )
+            should_exit = True
+
+        if should_exit:
             sys.exit(1)
