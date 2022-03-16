@@ -8,7 +8,7 @@ This example deploys a stack which sets up a [Jenkins](https://www.jenkins.io/) 
 
 #### Terminal
 
-All deployment commands must be executed inside the *repo* folder, navigate there if you haven't already done so.
+All deployment commands must be executed inside the *nimble_studio_build_pipeline* folder, navigate there if you haven't already done so.
 
 ```bash
  cd nimble_studio_game_development_suite/nimble_studio_build_pipeline

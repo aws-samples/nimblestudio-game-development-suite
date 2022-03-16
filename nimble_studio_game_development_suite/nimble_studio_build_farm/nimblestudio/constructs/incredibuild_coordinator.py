@@ -43,7 +43,7 @@ class IncredibuildCoordinator(Construct):
         scope: Construct,
         construct_id: str,
         *,
-        incredibuild_installer: Asset,
+        incredibuild_installer_location: str,
         incredibuild_license: Asset,
         studio_hosted_zone_attributes: dict,
         vpc: Vpc,
@@ -140,7 +140,7 @@ class IncredibuildCoordinator(Construct):
         )
         self._add_incredibuild_installer_user_data(
             coordinator_instance_role=coordinator_instance_role,
-            incredibuild_installer=incredibuild_installer,
+            incredibuild_installer_location=incredibuild_installer_location,
             incredibuild_license=incredibuild_license,
         )
 
@@ -211,18 +211,16 @@ class IncredibuildCoordinator(Construct):
         self,
         *,
         coordinator_instance_role: Role,
-        incredibuild_installer: Asset,
+        incredibuild_installer_location: str,
         incredibuild_license: Asset,
     ) -> None:
         # Firstly we need to give ourselves access to the CDK bucket
-        incredibuild_installer.bucket.grant_read(coordinator_instance_role)
+        incredibuild_license.bucket.grant_read(coordinator_instance_role)
 
         # Download the Incredibuild silent installer
         incredibuild_installer_local_path = r"C:\temp\IBSetupConsole.exe"
-        self._user_data.add_s3_download_command(
-            bucket=incredibuild_installer.bucket,
-            bucket_key=incredibuild_installer.s3_object_key,
-            local_file=incredibuild_installer_local_path,
+        self._user_data.add_commands(
+            f'(New-Object System.Net.WebClient).DownloadFile("{incredibuild_installer_location}", "{incredibuild_installer_local_path}")'
         )
 
         # Download the Incredibuild license
