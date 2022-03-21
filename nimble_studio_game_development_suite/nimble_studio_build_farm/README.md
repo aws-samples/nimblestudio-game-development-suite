@@ -4,6 +4,11 @@
 
 This example deploys a complete stack which installs an Incredibuild server as well as supporting infrastructure for use within a Nimble Studio VPC.
 
+### Setup
+
+Follow the instructions in the main repository [README](https://github.com/aws-samples/nimblestudio-game-development-suite/blob/main/README.md) to set up
+this GitHub package and python environment locally.
+
 ### Prerequisites
 
 #### Incredibuild License
