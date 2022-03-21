@@ -15,6 +15,11 @@ This application performs a download and setup of Perforce Helix Core and Perfor
 You may bring your own Perforce License for use with this application. Refer to the 
 [Perforce documentation on licensing](https://www.perforce.com/resources/vcs/cloud-version-control-guide#licensing).
 
+### Setup
+
+Follow the instructions in the main repository [README](https://github.com/aws-samples/nimblestudio-game-development-suite/blob/main/README.md) to set up
+this GitHub package and python environment locally.
+
 ### Deploy
 
 #### Terminal

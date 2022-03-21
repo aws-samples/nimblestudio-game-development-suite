@@ -4,6 +4,11 @@
 
 This example deploys a stack which sets up a [Jenkins](https://www.jenkins.io/) server and build node for use with Nimble Studio.
 
+### Setup
+
+Follow the instructions in the main repository [README](https://github.com/aws-samples/nimblestudio-game-development-suite/blob/main/README.md) to set up
+this GitHub package and python environment locally.
+
 ### Deploy
 
 #### Terminal

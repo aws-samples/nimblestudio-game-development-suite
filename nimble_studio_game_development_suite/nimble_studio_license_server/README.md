@@ -6,6 +6,11 @@ This example deploys a complete CloudFormation stack which sets up a License Ser
 
 License server setup is based on Nimble Studio's [Create license server documentation](https://docs.aws.amazon.com/nimble-studio/latest/userguide/creating-license-server.html)
 
+### Setup
+
+Follow the instructions in the main repository [README](https://github.com/aws-samples/nimblestudio-game-development-suite/blob/main/README.md) to set up
+this GitHub package and python environment locally.
+
 ### Deploy
 
 #### Terminal
