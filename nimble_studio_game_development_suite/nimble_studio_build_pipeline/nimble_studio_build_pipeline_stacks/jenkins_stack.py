@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_s3 as s3,
 )
 from constructs import Construct
+from typing import List
 from nimble_studio_build_pipeline.patterns.jenkins_pattern import JenkinsPattern
 
 
@@ -19,7 +20,7 @@ class JenkinsStack(NestedStack):
         key_name: str,
         vpce_security_group: ec2.ISecurityGroup or None,
         perforce_security_group: ec2.ISecurityGroup or None,
-        allow_access_from: list[ec2.IPeer],
+        allow_access_from: List[ec2.IPeer],
         build_node_security_group: ec2.ISecurityGroup,
         ssm_logging_bucket: s3.IBucket,
         **kwargs,

@@ -1,5 +1,6 @@
 from aws_cdk import Duration, Tags, Stack, aws_ec2 as ec2, aws_iam as iam, aws_s3 as s3
 from constructs import Construct
+from typing import List
 import sys
 
 sys.path.append("../../utils")
@@ -20,7 +21,7 @@ class JenkinsPattern(Construct):
         subnet: ec2.ISubnet,
         key_name: str,
         security_group: ec2.SecurityGroup,
-        allow_access_from: list[ec2.IPeer],
+        allow_access_from: List[ec2.IPeer],
         build_node_security_group: ec2.ISecurityGroup,
         ssm_logging_bucket: s3.IBucket,
         **kwargs,

@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_s3 as s3,
 )
 from constructs import Construct
+from typing import List
 import sys
 
 sys.path.append("../../utils")
@@ -27,7 +28,7 @@ class BuildNodeImageStack(NestedStack):
         vpce_security_group: ec2.ISecurityGroup or None,
         perforce_security_group: ec2.ISecurityGroup or None,
         artifact_bucket: s3.IBucket,
-        allow_access_from: list[ec2.IPeer],
+        allow_access_from: List[ec2.IPeer],
         ssm_log_bucket: s3.IBucket,
         **kwargs,
     ):
