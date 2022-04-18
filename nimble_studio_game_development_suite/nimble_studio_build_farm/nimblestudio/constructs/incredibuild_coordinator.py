@@ -38,6 +38,8 @@ from nimblestudio.utils import add_user_data_cloudwatch_agent
 
 
 class IncredibuildCoordinator(Construct):
+    INCREDIBUILD_LICENSE_LOCAL_PATH = r"C:\temp\license.IB_lic"
+
     def __init__(
         self,
         scope: Construct,
@@ -139,10 +141,13 @@ class IncredibuildCoordinator(Construct):
             coordinator_instance_role=coordinator_instance_role
         )
         self._add_incredibuild_installer_user_data(
-            coordinator_instance_role=coordinator_instance_role,
             incredibuild_installer_location=incredibuild_installer_location,
+        )
+        self._add_incredibuild_license_registration_user_data(
+            coordinator_instance_role=coordinator_instance_role,
             incredibuild_license=incredibuild_license,
         )
+        self._signal_cloudformation_success_user_data()
 
         self.coordinator_instance.user_data.add_commands(self._user_data.render())
 
@@ -210,12 +215,8 @@ class IncredibuildCoordinator(Construct):
     def _add_incredibuild_installer_user_data(
         self,
         *,
-        coordinator_instance_role: Role,
         incredibuild_installer_location: str,
-        incredibuild_license: Asset,
     ) -> None:
-        # Firstly we need to give ourselves access to the CDK bucket
-        incredibuild_license.bucket.grant_read(coordinator_instance_role)
 
         # Download the Incredibuild silent installer
         incredibuild_installer_local_path = r"C:\temp\IBSetupConsole.exe"
@@ -223,20 +224,49 @@ class IncredibuildCoordinator(Construct):
             f'(New-Object System.Net.WebClient).DownloadFile("{incredibuild_installer_location}", "{incredibuild_installer_local_path}")'
         )
 
-        # Download the Incredibuild license
-        incredibuild_license_local_path = r"C:\temp\license.IB_lic"
-        self._user_data.add_s3_download_command(
-            bucket=incredibuild_license.bucket,
-            bucket_key=incredibuild_license.s3_object_key,
-            local_file=incredibuild_license_local_path,
-        )
-
-        # Install Incredibuild, and then register the Incredibuild license
+        # Install Incredibuild
         self._user_data.add_commands(
             f"{incredibuild_installer_local_path} /install /Components=Coordinator",
-            f'& "C:\\Program Files (x86)\\IncrediBuild\\XLicProc.exe" /LICENSEFILE={incredibuild_license_local_path}',
         )
 
+    def _add_incredibuild_license_registration_user_data(
+        self,
+        *,
+        coordinator_instance_role: Role,
+        incredibuild_license: Asset,
+    ) -> None:
+
+        if incredibuild_license:
+            # Firstly we need to give ourselves access to the CDK bucket
+            incredibuild_license.bucket.grant_read(coordinator_instance_role)
+            # Download the Incredibuild license
+            self._user_data.add_s3_download_command(
+                bucket=incredibuild_license.bucket,
+                bucket_key=incredibuild_license.s3_object_key,
+                local_file=IncredibuildCoordinator.INCREDIBUILD_LICENSE_LOCAL_PATH,
+            )
+        else:
+            # Activate a free trial license
+            self._user_data.add_commands(
+                f"""
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+choco install vcredist2015 -y
+
+$licenseApi = "https://f65xom4rf9.execute-api.eu-central-1.amazonaws.com/default/license_generator?machine_id="
+$licensePath = "{IncredibuildCoordinator.INCREDIBUILD_LICENSE_LOCAL_PATH}"
+
+$machineid = & "C:\\Program Files (x86)\\IncrediBuild\\machineid.exe"
+(New-Object System.Net.WebClient).DownloadFile($licenseApi+$machineid, $licensePath)
+
+$data = Get-Content $licensePath
+$bytes = [Convert]::FromBase64String($data)
+[IO.File]::WriteAllBytes($licensePath, $bytes)
+
+& "C:\\Program Files (x86)\\IncrediBuild\\XLicProc.exe" /LICENSEFILE="{IncredibuildCoordinator.INCREDIBUILD_LICENSE_LOCAL_PATH}"
+"""
+            )
+
+    def _signal_cloudformation_success_user_data(self):
         # Send the success signal to CloudFormation
         self._user_data.add_commands(
             f"cfn-signal --stack {Stack.of(self).stack_name} --resource {Stack.of(self).get_logical_id(self.coordinator_instance.node.default_child)} --region {Stack.of(self).region} --success true"
