@@ -261,10 +261,15 @@ $machineid = & "C:\\Program Files (x86)\\IncrediBuild\\machineid.exe"
 $data = Get-Content $licensePath
 $bytes = [Convert]::FromBase64String($data)
 [IO.File]::WriteAllBytes($licensePath, $bytes)
-
-& "C:\\Program Files (x86)\\IncrediBuild\\XLicProc.exe" /LICENSEFILE="{IncredibuildCoordinator.INCREDIBUILD_LICENSE_LOCAL_PATH}"
 """
             )
+
+        # Finally, activate the license
+        self._user_data.add_commands(
+            f"""
+& "C:\\Program Files (x86)\\IncrediBuild\\XLicProc.exe" /LICENSEFILE="{IncredibuildCoordinator.INCREDIBUILD_LICENSE_LOCAL_PATH}"
+"""
+        )
 
     def _signal_cloudformation_success_user_data(self):
         # Send the success signal to CloudFormation
