@@ -13,9 +13,9 @@ this GitHub package and python environment locally.
 
 #### Incredibuild License
 
-Place your Incredibuild License file in the `nimble_studio_game_development_suite/nimble_studio_build_farm/incredibuild` folder. 
+If you have an Incredibuild License file, place it in the `nimble_studio_game_development_suite/nimble_studio_build_farm/incredibuild` folder. 
 
-You can download a free trial license from the [Incredibuild website](https://www.incredibuild.com/free-trial).
+Otherwise, the application will download and activate a [free trial license](https://www.incredibuild.com/free-trial) automatically as part of deployment.
 
 ### Deploy
 

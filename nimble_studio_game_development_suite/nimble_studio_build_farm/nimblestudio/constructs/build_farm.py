@@ -102,17 +102,20 @@ class NimbleStudioBuildFarmStack(Stack):
             self, "WorkerSupportNetworkACL", worker_support_network_acl_id
         )
 
-        # We locate the Incredibuild license file
+        # We locate the Incredibuild license file if it exists
         incredibuild_path = self._get_incredibuild_path()
 
         incredibuild_license_path = self._get_incredibuild_license_path(
             incredibuild_path
         )
 
-        # Upload the Incredibuild license to the CDK's S3 bucket in your account
-        self.incredibuild_license = Asset(
-            self, "IncredibuildLicense", path=str(incredibuild_license_path)
-        )
+        if incredibuild_license_path:
+            # Upload the Incredibuild license to the CDK's S3 bucket in your account
+            self.incredibuild_license = Asset(
+                self, "IncredibuildLicense", path=str(incredibuild_license_path)
+            )
+        else:
+            self.incredibuild_license = None
 
         # Create an Incredibuild coordinator
         self.incredibuild_coordinator = IncredibuildCoordinator(
@@ -179,16 +182,16 @@ New-ItemProperty -Path $RegistryPath -Name $Name -Value $Value -PropertyType Str
     def _get_incredibuild_path(self):
         return Path(__file__).parent.parent.parent.joinpath("incredibuild").absolute()
 
-    def _get_incredibuild_license_path(self, incredibuild_path: Path):
+    def _get_incredibuild_license_path(self, incredibuild_path: Path) -> Path or None:
         # We search the incredibuild_path for any Incredibuild license files, and return the most recent one
         license_files = incredibuild_path.glob("*.IB_lic")
         list_of_files = [license_file for license_file in license_files]
 
         if not list(list_of_files):
             print(
-                f"ERROR: Failed to find an Incredibuild license in {incredibuild_path}"
+                f"No Incredibuild license found in {incredibuild_path}. A free trial license will be created."
             )
-            sys.exit(1)
+            return None
 
         latest_file = max(list_of_files, key=os.path.getctime)
 
