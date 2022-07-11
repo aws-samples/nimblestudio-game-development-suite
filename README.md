@@ -14,6 +14,10 @@ The architecture for the entire suite of applications deployed within a Nimble S
 
 ![Architecture](docs/NimbleStudioGameDevSuite.png)
 
+### Demo Video
+
+[![Amazon Nimble Studio for Games](https://img.youtube.com/vi/zfkHi1ft25I/default.jpg)](https://www.youtube.com/watch?v=zfkHi1ft25I)
+
 ### Getting Started
 
 #### Prerequisites
