@@ -4,6 +4,9 @@
 
 This example deploys a complete stack which installs an Incredibuild server as well as supporting infrastructure for use within a Nimble Studio VPC.
 
+This sample launches a defined set of Incredibuild worker instances. For dynamically scaling workers, check out 
+[Incredibuild Cloud Optimization](https://www.incredibuild.com/product/cloud).
+
 ### Setup
 
 Follow the instructions in the main repository [README](https://github.com/aws-samples/nimblestudio-game-development-suite/blob/main/README.md) to set up
