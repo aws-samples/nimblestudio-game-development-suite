@@ -6,6 +6,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_route53 as r53,
     aws_secretsmanager as secretsmanager,
+    aws_efs as efs,
 )
 from constructs import Construct
 
@@ -46,20 +47,17 @@ class NimbleStudioPerforceServerMainInstanceStack(
             ),
         )
 
-        # Setup depot volume
-
-        depot_block_device = ec2.BlockDevice(
-            device_name="/dev/sdb",
-            volume=ec2.BlockDeviceVolume.ebs(
-                volume_type=ec2.EbsDeviceVolumeType.GP3,
-                volume_size=1024,
-                delete_on_termination=True,
-                encrypted=True,
-            ),
+        # Setup depot efs volume
+        depot_filesystem = efs.FileSystem(
+            self,
+            "EFS-Perforce-Depots",
+            vpc=self._vpc,
+            lifecycle_policy=efs.LifecyclePolicy.AFTER_14_DAYS,  # files are not transitioned to infrequent access (IA) storage by default
+            performance_mode=efs.PerformanceMode.GENERAL_PURPOSE,  # default
+            out_of_infrequent_access_policy=efs.OutOfInfrequentAccessPolicy.AFTER_1_ACCESS,
         )
 
         # Setup metadata volume
-
         metadata_block_device = ec2.BlockDevice(
             device_name="/dev/sdd",
             volume=ec2.BlockDeviceVolume.ebs(
@@ -90,12 +88,18 @@ class NimbleStudioPerforceServerMainInstanceStack(
             key_name=self._key_pair_name,
             security_group=security_group,
             vpc_subnets=ec2.SubnetSelection(subnets=[self._subnet]),
-            block_devices=[depot_block_device, log_block_device, metadata_block_device],
+            block_devices=[log_block_device, metadata_block_device],
         )
+
+        # Allow access to EFS
+        depot_filesystem.connections.allow_default_port_from(security_group)
 
         perforce_instance_logical_id = NestedStack.of(self).get_logical_id(
             self.perforce_server_instance_main.node.default_child
         )
+
+        # ensure efs is ready
+        self.perforce_server_instance_main.node.add_dependency(depot_filesystem)
 
         # Read UserData Script and replace placeholders
         with open("assets/setup-perforce-helix-core.sh", "r") as user_data_file:
@@ -110,6 +114,7 @@ class NimbleStudioPerforceServerMainInstanceStack(
             "REGION_PLACEHOLDER": self._region,
             "SWARM_IP_PLACEHOLDER": f"{PERFORCE_SWARM_RECORD_PREFIX}{self._hosted_zone.zone_name}",
             "LOCAL_P4_PORT_PLACEHOLDER": "ssl:localhost:1666",
+            "FILESYSTEMID": depot_filesystem.file_system_id,
         }
         user_data = replace_user_data_values(
             user_data=user_data, replacement_map=user_data_replacement_map
