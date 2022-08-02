@@ -83,7 +83,8 @@ class NimbleStudioPerforceServerMainInstanceStack(
             machine_image=linux_image,
             vpc=self._vpc,
             instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.COMPUTE5, ec2.InstanceSize.XLARGE4
+                ec2.InstanceClass.M5,
+                ec2.InstanceSize.LARGE,
             ),
             key_name=self._key_pair_name,
             security_group=security_group,
