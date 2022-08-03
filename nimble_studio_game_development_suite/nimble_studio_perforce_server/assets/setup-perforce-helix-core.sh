@@ -5,7 +5,7 @@
 # Script derived from
 # https://github.com/aws-samples/game-production-in-the-cloud-example-pipeline/blob/main/assets/setup-perforce-helix-core.sh
 
-# stop ssm agent if active to prevent interuptions from patchign 
+# stop ssm agent if active to prevent interruptions from patching 
 systemctl is-active --quiet amazon-ssm-agent && systemctl stop amazon-ssm-agent && echo ssm service stopped
 
 set -eux -o pipefail
