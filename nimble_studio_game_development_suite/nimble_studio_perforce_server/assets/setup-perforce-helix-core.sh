@@ -5,6 +5,9 @@
 # Script derived from
 # https://github.com/aws-samples/game-production-in-the-cloud-example-pipeline/blob/main/assets/setup-perforce-helix-core.sh
 
+# stop ssm agent if active to prevent interruptions from patching 
+systemctl is-active --quiet amazon-ssm-agent && systemctl stop amazon-ssm-agent && echo ssm service stopped
+
 set -eux -o pipefail
 
 trap 'catch $? $LINENO' ERR
@@ -18,19 +21,6 @@ catch() {
   /opt/aws/bin/cfn-signal --stack STACK_NAME_PLACEHOLDER --resource RESOURCE_LOGICAL_ID_PLACEHOLDER --region REGION_PLACEHOLDER --exit-code $1 
   exit $1
 }
-
-# Create filesystem on each of the block devices and mount them
-
-mkfs -t xfs /dev/sdb && mkdir /hxdepots && mount /dev/sdb /hxdepots
-mkfs -t xfs /dev/sdc && mkdir /hxlogs && mount /dev/sdc /hxlogs
-mkfs -t xfs /dev/sdd && mkdir /hxmetadata && mount /dev/sdd /hxmetadata
-
-# Modify /etc/fstab to mount device when booting up
-
-blkid /dev/sdb | awk -v OFS="   " '{print $2,"/hxdepots","xfs","defaults,nofail","0","2"}' >> /etc/fstab
-blkid /dev/sdc | awk -v OFS="   " '{print $2,"/hxlogs","xfs","defaults,nofail","0","2"}' >> /etc/fstab
-
-blkid /dev/sdd | awk -v OFS="   " '{print $2,"/hxmetadata","xfs","defaults,nofail","0","2"}' >> /etc/fstab
 
 # Add Perforce YUM repository and install Perforce
 cat <<'EOF' >> /etc/yum.repos.d/perforce.repo
@@ -46,10 +36,8 @@ chmod 0644 /etc/yum.repos.d/perforce.repo
 
 rpm --import https://package.perforce.com/perforce.pubkey
 
-# Install required packages
-
-yum -y update
-yum -y install helix-p4d helix-swarm-triggers uuid perl-Digest-MD5 perl-Sys-Syslog perl-JSON
+yum upgrade -y                        
+yum install -y amazon-efs-utils helix-p4d helix-swarm-triggers uuid perl-Digest-MD5 perl-Sys-Syslog perl-JSON mailx
 
 # Remove AWS cli version 1 and install version 2
 yum -y remove awscli
@@ -58,9 +46,21 @@ curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv
 unzip /tmp/awscliv2.zip -d /tmp
 /tmp/aws/install
 
+# Mount EFS
+efs_mount_point_1=/hxdepots
+mkdir -p ${efs_mount_point_1}
+mount -t efs -o tls fs-${FILESYSTEMID}:/ ${efs_mount_point_1}
 
-# Install mailx - Needed by /p4/common/bin/recreate_offline_db.sh
-yum -y install mailx
+# Modify /etc/fstab to mount device when booting up
+echo "fs-${FILESYSTEMID}:/ ${efs_mount_point_1} efs defaults,_netdev 0 0" >> /etc/fstab
+
+# Create filesystem on each of the block devices and mount them
+mkfs -t xfs /dev/sdc && mkdir /hxlogs && mount /dev/sdc /hxlogs
+mkfs -t xfs /dev/sdd && mkdir /hxmetadata && mount /dev/sdd /hxmetadata
+
+# Modify /etc/fstab to mount device when booting up
+blkid /dev/sdc | awk -v OFS="   " '{print $2,"/hxlogs","xfs","defaults,nofail","0","2"}' >> /etc/fstab
+blkid /dev/sdd | awk -v OFS="   " '{print $2,"/hxmetadata","xfs","defaults,nofail","0","2"}' >> /etc/fstab
 
 # Create P4admin user
 adduser -g perforce -G adm,wheel p4admin
@@ -128,9 +128,7 @@ export P4PORT=LOCAL_P4_PORT_PLACEHOLDER
 /p4/common/bin/p4master_run 1 /p4/1/bin/p4d_1 -Gc
 
 # Configure Server
-
 /hxdepots/sdp/Server/setup/configure_new_server.sh 1
-
 
 # Load Perforce environment variables, set the password persisted in the AWS Secrets Manager and put security measaurements in place
 source /p4/common/bin/p4_vars 1
@@ -140,7 +138,6 @@ p4 configure set dm.user.noautocreate=2
 p4 configure set run.users.authorize=1
 p4 configure set dm.keys.hide=2
 p4 configure set security=3
-
 
 perforce_default_password=$(/usr/local/bin/aws secretsmanager get-secret-value --secret-id PERFORCE_PASSWORD_ARN_PLACEHOLDER --query SecretString --output text)
 
@@ -254,4 +251,5 @@ export SNS_ALERT_TOPIC_ARN="SNS_ALERT_TOPIC_ARN_PLACEHOLDER"
 
 EOF
 
+systemctl start amazon-ssm-agent
 /opt/aws/bin/cfn-signal --stack STACK_NAME_PLACEHOLDER --resource RESOURCE_LOGICAL_ID_PLACEHOLDER --region REGION_PLACEHOLDER
