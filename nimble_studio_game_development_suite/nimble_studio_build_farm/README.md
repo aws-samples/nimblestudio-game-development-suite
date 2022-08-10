@@ -74,16 +74,22 @@ cdk bootstrap aws://<account-number>/<region>
 1. Deploy the project using the following command in the root of the NimbleStudioBuildFarmStack folder 
 
 ```bash
-cdk deploy NimbleStudioBuildFarmStack
+cdk deploy NimbleStudioBuildFarm
 ```
 
 ### Configure
 
 #### Launch Profiles
 
-Deployment of the NimbleStudioBuildFarmStack stack will create an `Incredibuild` studio component resource, which will be available as a studio resource under custom configuration.
+Deployment of the NimbleStudioBuildFarm stack will create an `Incredibuild` studio component resource, which will be available as a studio resource under custom configuration.
 
 This component can be [associated with a Launch Profile](https://docs.aws.amazon.com/nimble-studio/latest/userguide/modifying-launch-profiles.html#modifying-launch-profiles-update) in order to automatically configure the Incredibuild coordinator URL on the Nimble streaming workstation environment.
+
+#### Incredibuild Workers
+
+Deployment of the NimbleStudioBuildFarm stack will create an `IncredibuildWorkerFleet` Auto Scaling Group to spin up worker nodes to help
+with build jobs. Initial deployment will set the desired capacity to zero, but this can be 
+[increased](https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-manual-scaling.html) to launch instances as needed.
 
 ### Development
 

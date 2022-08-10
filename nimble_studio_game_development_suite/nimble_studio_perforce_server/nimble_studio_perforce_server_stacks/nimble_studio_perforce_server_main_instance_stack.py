@@ -52,6 +52,7 @@ class NimbleStudioPerforceServerMainInstanceStack(
             self,
             "EFS-Perforce-Depots",
             vpc=self._vpc,
+            security_group=security_group,
             lifecycle_policy=efs.LifecyclePolicy.AFTER_14_DAYS,  # files are not transitioned to infrequent access (IA) storage by default
             performance_mode=efs.PerformanceMode.GENERAL_PURPOSE,  # default
             out_of_infrequent_access_policy=efs.OutOfInfrequentAccessPolicy.AFTER_1_ACCESS,
@@ -83,7 +84,7 @@ class NimbleStudioPerforceServerMainInstanceStack(
             machine_image=linux_image,
             vpc=self._vpc,
             instance_type=ec2.InstanceType.of(
-                ec2.InstanceClass.M5,
+                ec2.InstanceClass.MEMORY5,
                 ec2.InstanceSize.LARGE,
             ),
             key_name=self._key_pair_name,

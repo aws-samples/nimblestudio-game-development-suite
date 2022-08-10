@@ -113,7 +113,7 @@ class IncredibuildWorkers(Construct):
                 }
             )
             if worker_ami
-            else WindowsImage(WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE)
+            else WindowsImage(WindowsVersion.WINDOWS_SERVER_2022_ENGLISH_FULL_BASE)
         )
 
         # Use the instance type specified in the WORKER_INSTANCE_TYPE environment
@@ -187,11 +187,16 @@ class IncredibuildWorkers(Construct):
 
         # Download the Incredibuild silent installer
         incredibuild_installer_local_path = r"C:\temp\IBSetupConsole.exe"
+
         self._user_data.add_commands(
-            f"(New-Object System.Net.WebClient).DownloadFile({incredibuild_installer_location}, {incredibuild_installer_local_path})"
+            f'if (-Not (Test-Path "C:\\temp")) {{ New-Item "C:\\temp" -ItemType Directory }}'
+        )
+
+        self._user_data.add_commands(
+            f'wget -Uri "{incredibuild_installer_location}" -Outfile "{incredibuild_installer_local_path}"'
         )
 
         # Install Incredibuild, and then configure it to connect to the coordinator
         self._user_data.add_commands(
-            f"{incredibuild_installer_local_path} /install /Components=Agent /Coordinator {coordinator_domain_name}"
+            f'{incredibuild_installer_local_path} /install /Components=Agent /Coordinator="{coordinator_domain_name}"'
         )
