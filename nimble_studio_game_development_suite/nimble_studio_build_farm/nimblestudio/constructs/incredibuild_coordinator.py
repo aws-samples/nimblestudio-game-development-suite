@@ -119,7 +119,7 @@ class IncredibuildCoordinator(Construct):
             "IncredibuildCoordinator",
             instance_type=InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.LARGE),
             machine_image=WindowsImage(
-                WindowsVersion.WINDOWS_SERVER_2019_ENGLISH_FULL_BASE
+                WindowsVersion.WINDOWS_SERVER_2022_ENGLISH_FULL_BASE
             ),
             role=coordinator_instance_role,
             # The deploy will fail if the co-ordinator takes over 10 minutes to
